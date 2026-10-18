@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asal Simyacı: Kozmik Asal Reaktörü</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{
+  --navy:#1E3A5F; --teal:#26A69A; --orange:#FB8C00; --paper:#FFFFFF; --ink:#14213D;
+  --green:#2E9E5B; --red:#D64545; --gold:#E5A100; --purple:#6A4C93;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;color:var(--ink);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  background-color:#EEF3F8;
+  background-image:
+    linear-gradient(rgba(38,100,160,.11) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(38,100,160,.11) 1px,transparent 1px);
+  background-size:25px 25px;
+  -webkit-tap-highlight-color:transparent;
+}
+sup{font-size:.7em;line-height:0}
+.wrap{max-width:1340px;margin:0 auto;padding:12px}
+.muted{color:#4a5a78;font-size:13px;line-height:1.45}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+
+/* ---------- Üst bar ---------- */
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:var(--navy);color:#fff;border-radius:16px;padding:10px 16px;box-shadow:0 6px 18px rgba(30,58,95,.3)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4fd1c5,var(--teal) 55%,#146b62);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 14px rgba(38,166,154,.8)}
+.h-title{font-size:22px;font-weight:900;letter-spacing:.02em;line-height:1.1}
+.h-sub{font-size:12px;opacity:.85}
+.hud{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hud-item{background:rgba(255,255,255,.1);border-radius:10px;padding:4px 12px;display:flex;flex-direction:column;align-items:center;min-width:64px}
+.hud-l{font-size:10px;opacity:.8;text-transform:uppercase;letter-spacing:.06em}
+.hud-v{font-size:18px;font-weight:800}
+.lives{font-size:16px;letter-spacing:2px}
+.icon-btn{background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer}
+.icon-btn:hover{background:rgba(255,255,255,.28)}
+
+/* ---------- Sekmeler ---------- */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.tbtn{padding:9px 14px;border-radius:12px;border:2px solid var(--navy);background:#fff;color:var(--navy);font-weight:700;cursor:pointer;font-size:14px}
+.tbtn:hover{background:#eaf3f2}
+.tbtn.on{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 3px 10px rgba(38,166,154,.45)}
+.tab{display:none}
+.tab.active{display:block}
+
+/* ---------- Kartlar ---------- */
+.sheet{background:#fff;border-radius:14px;padding:12px;border:1px solid rgba(30,58,95,.14);box-shadow:0 8px 20px rgba(30,58,95,.12),0 1px 0 rgba(30,58,95,.08);position:relative}
+.sheet-title{font-weight:800;color:var(--navy);font-size:15px;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{background:var(--navy);color:#fff;border:0;border-radius:12px;padding:10px 18px;font-weight:800;cursor:pointer;font-size:15px;transition:filter .15s,transform .1s}
+.btn:hover{filter:brightness(1.18)}
+.btn:active{transform:translateY(2px)}
+.btn.teal{background:var(--teal)}
+.btn.orange{background:var(--orange)}
+.btn.green{background:var(--green)}
+.btn.ghost{background:#fff;color:var(--navy);border:2px solid var(--navy)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* ---------- Reaktör ızgarası ---------- */
+.rgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.9fr);gap:12px}
+@media(max-width:1000px){.rgrid{grid-template-columns:1fr}}
+.field{position:relative;height:470px;overflow:hidden;border-radius:10px;border:2px solid var(--navy);background:linear-gradient(#fbfdff,#e6eef7);touch-action:manipulation}
+@media(max-width:600px){.field{height:410px}}
+.field.alarm{animation:alarm .5s ease 3}
+.field canvas{position:absolute;inset:0;pointer-events:none;z-index:4;width:100%;height:100%}
+#rocks{position:absolute;inset:0;z-index:3}
+.floor{position:absolute;left:0;right:0;bottom:0;height:30px;background:linear-gradient(var(--navy),#142a47);color:#fff;font-size:11px;letter-spacing:.25em;text-align:center;line-height:30px;border-top:3px solid var(--teal);z-index:2;box-shadow:0 -4px 14px rgba(38,166,154,.5)}
+.shake{animation:shake .45s}
+.alert{display:none;position:absolute;top:10px;left:10px;right:10px;z-index:9;color:#fff;padding:10px 12px;border-radius:10px;font-weight:800;text-align:center;font-size:15px;box-shadow:0 6px 16px rgba(0,0,0,.3);pointer-events:none}
+.alert.show{display:block;animation:alertIn .3s}
+.alert.red{background:var(--red)}
+.alert.green{background:var(--green)}
+.alert.gold{background:var(--gold);color:var(--ink)}
+.alert.navy{background:var(--navy)}
+.overlay{position:absolute;inset:0;background:rgba(20,33,61,.9);color:#fff;z-index:20;display:flex;align-items:center;justify-content:center;padding:14px;text-align:center;overflow:auto}
+.overlay.hidden{display:none}
+.ov-card{max-width:440px}
+.ov-card h2{font-size:26px;font-weight:900;margin:0 0 8px;color:#fff}
+.ov-card ul{text-align:left;font-size:14px;line-height:1.5;padding-left:18px;margin:8px 0 14px}
+.ov-card li{margin-bottom:4px}
+.ov-card p{margin:6px 0}
+
+/* ---------- Göktaşları ---------- */
+.rock{position:absolute;left:0;top:0;width:68px;height:68px;cursor:pointer;user-select:none;will-change:transform}
+.rock-body{position:relative;z-index:2;width:68px;height:68px;border-radius:46% 54% 52% 48%/52% 46% 54% 48%;background:radial-gradient(circle at 30% 28%,#FFC46B,var(--orange) 55%,#B85F00);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:25px;text-shadow:0 2px 3px rgba(0,0,0,.45);border:2px solid #B85F00;box-shadow:0 5px 12px rgba(0,0,0,.28),inset -6px -8px 12px rgba(0,0,0,.25)}
+.rock.target .rock-body{outline:3px dashed var(--teal);outline-offset:5px}
+.rock.split .rock-body{animation:splitPulse .38s}
+.rock-cores{position:absolute;top:72px;left:50%;transform:translateX(-50%);display:flex;gap:3px;white-space:nowrap;z-index:2}
+.core{width:25px;height:25px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 9px 3px rgba(46,158,91,.75);animation:coreIn .45s}
+.rock.blackhole .rock-body{background:radial-gradient(circle,#0b0614 0 25%,#35195f 50%,var(--purple) 78%);border-color:var(--red);box-shadow:0 0 16px 6px rgba(106,76,147,.85)}
+.rock.blackhole::before{content:"";position:absolute;inset:-16px;border-radius:50%;z-index:1;background:conic-gradient(from 0deg,#6A4C93,#D64545,#1b0b33,#6A4C93,#D64545,#1b0b33,#6A4C93);-webkit-mask:radial-gradient(circle,transparent 40%,#000 44%,#000 60%,transparent 72%);mask:radial-gradient(circle,transparent 40%,#000 44%,#000 60%,transparent 72%);animation:spin 1s linear infinite;opacity:.9}
+.rock.sealed .rock-body{background:radial-gradient(circle at 30% 28%,#FFE08A,var(--gold) 60%,#9a6d00);border-color:var(--gold);box-shadow:0 0 20px 8px rgba(229,161,0,.8)}
+.rock.sealed::after{content:"";position:absolute;inset:-9px;z-index:3;border:3px solid var(--gold);border-radius:16px;background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(229,161,0,.9) 9px 12px);animation:cageIn .35s}
+.rock.done .rock-body{background:radial-gradient(circle at 30% 28%,#8be3ab,var(--green) 60%,#17653a);border-color:#17653a;box-shadow:0 0 22px 8px rgba(46,158,91,.8)}
+.rock.out{animation:outAnim .8s forwards}
+
+/* ---------- Ağaç + panel ---------- */
+.tree-box{border:2px solid var(--navy);border-radius:10px;background:#fff;min-height:300px}
+#tree{width:100%;height:auto;max-height:430px;display:block}
+.tline{stroke:#1E3A5F;stroke-width:2.5;fill:none}
+.tline.draw{stroke-dasharray:90;stroke-dashoffset:90;animation:dash .5s ease forwards}
+.tnode.pop circle,.tnode.pop polygon{animation:popIn .45s;transform-box:fill-box;transform-origin:center}
+.capsule-label{font-size:12px;font-weight:700;color:var(--navy);margin:8px 0 4px;text-transform:uppercase;letter-spacing:.06em}
+.capsule{border-radius:999px;padding:10px 18px;font-size:22px;font-weight:900;text-align:center;background:linear-gradient(90deg,var(--navy),#27527f);color:#fff;border:2px solid var(--teal);box-shadow:0 0 16px rgba(38,166,154,.8);animation:glow 1.6s ease-in-out infinite}
+.capsule.gold{background:linear-gradient(90deg,#9a6d00,var(--gold));color:var(--ink);border-color:#fff;box-shadow:0 0 18px rgba(229,161,0,.9)}
+.capsule.idle{background:#f2f6fa;color:#6b7b96;border:2px dashed #b8c6da;box-shadow:none;animation:none;font-size:14px;font-weight:600}
+.dbox{border:2px solid var(--navy);border-radius:10px;padding:10px;min-height:210px;background:#fcfdff}
+.dlist{display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px}
+.drow{display:flex;animation:rowIn .35s}
+.dn{min-width:86px;padding:3px 14px;text-align:right;border-right:4px solid var(--navy);font-weight:800;color:var(--navy)}
+.dd{min-width:52px;padding:3px 14px;font-weight:900;color:var(--green)}
+.dd.q{color:var(--orange)}
+.hint{margin-top:10px;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.45;background:#eef6f5;border-left:6px solid var(--teal);min-height:64px}
+.hint.err{background:#fdeeee;border-left-color:var(--red)}
+.hint.ok{background:#eaf7ef;border-left-color:var(--green)}
+.hint.gold{background:#fff6dc;border-left-color:var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.gchip{background:linear-gradient(#FFE08A,var(--gold));color:var(--ink);border-radius:10px;padding:3px 10px;font-weight:900;box-shadow:0 0 8px rgba(229,161,0,.7);animation:coreIn .5s}
+
+/* ---------- Konsol ---------- */
+.console{margin-top:12px;background:linear-gradient(var(--navy),#16304F);border-radius:14px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(30,58,95,.35)}
+.con-info{color:#fff;font-size:13px;min-width:150px;line-height:1.5}
+.con-info b{font-size:20px;color:var(--orange)}
+.lasers{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.laser{position:relative;min-width:76px;padding:10px 12px;border-radius:12px;background:#fff;color:var(--navy);border:3px solid var(--teal);font-weight:900;font-size:21px;cursor:pointer;box-shadow:0 4px 0 #168077;transition:transform .08s,box-shadow .08s}
+.laser:active{transform:translateY(3px);box-shadow:0 1px 0 #168077}
+.laser .k{position:absolute;top:1px;right:5px;font-size:9px;opacity:.6;font-weight:700}
+.laser .bar{position:absolute;left:8px;right:8px;bottom:3px;height:4px;border-radius:3px}
+.seal-btn{padding:12px 20px;border-radius:14px;border:3px solid #fff;background:linear-gradient(#FFE08A,var(--gold) 55%,#b57f00);color:var(--ink);font-weight:900;font-size:17px;cursor:pointer;animation:goldPulse 1.6s ease-in-out infinite;letter-spacing:.03em}
+.seal-btn:active{transform:translateY(2px)}
+
+/* ---------- Kalbur ---------- */
+.sgrid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.scell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border-radius:8px;border:2px solid rgba(30,58,95,.2);background:#fff;font-weight:800;font-size:15px;cursor:pointer;color:var(--ink);position:relative;transition:background .25s}
+.scell.x{text-decoration:line-through;color:#7d8aa3}
+.scell.out{background:#e4e8ef;color:#98a3b8;text-decoration:line-through}
+.scell.keep{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal) inset}
+.scell.prime{background:var(--teal);border-color:#168077;color:#fff;box-shadow:0 0 10px rgba(38,166,154,.8);animation:popIn .5s}
+.scell.sel{outline:3px solid var(--orange)}
+.svbtns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.svlog{font-size:13px;line-height:1.6}
+.twocol{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:12px}
+@media(max-width:900px){.twocol{grid-template-columns:1fr}}
+.info-box{border-left:6px solid var(--navy);background:#f3f7fb;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.5;margin-top:8px}
+.info-box.t{border-left-color:var(--teal);background:#eef8f7}
+.info-box.g{border-left-color:var(--green);background:#eaf7ef}
+.info-box.o{border-left-color:var(--orange);background:#fff4e5}
+.info-box.r{border-left-color:var(--red);background:#fdeeee}
+
+/* ---------- Füzyon ---------- */
+.parts{display:flex;flex-wrap:wrap;gap:8px}
+.part{width:58px;height:58px;border-radius:50%;border:3px solid #fff;color:#fff;font-weight:900;font-size:20px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.25);transition:transform .1s}
+.part:hover{transform:scale(1.08)}
+.part:active{transform:scale(.94)}
+.slots{display:flex;flex-wrap:wrap;gap:8px;min-height:64px;padding:10px;border:2px dashed var(--teal);border-radius:12px;background:#f2fbfa;align-items:center}
+.slot-chip{width:48px;height:48px;border-radius:50%;color:#fff;font-weight:900;font-size:18px;border:3px solid #fff;cursor:pointer;box-shadow:0 0 10px rgba(38,166,154,.8)}
+.product{font-size:26px;font-weight:900;color:var(--navy);margin:8px 0}
+.dots{display:flex;gap:6px;margin:6px 0}
+.dot{width:16px;height:16px;border-radius:50%;background:#d5dfeb;border:2px solid #fff;box-shadow:0 0 0 1px #b8c6da}
+.dot.on{background:var(--green)}
+.dot.cur{background:var(--orange)}
+
+/* ---------- İşango ---------- */
+.bone-svg{width:100%;height:auto;display:block}
+.bone-grp{cursor:pointer}
+.bone-grp line{stroke:#6e5b34;stroke-width:3.5;stroke-linecap:round;transition:stroke .2s}
+.bone-grp:hover line,.bone-grp.sel line{stroke:var(--teal)}
+.bone-grp.sel.comp line{stroke:var(--red)}
+.rem-chip{display:inline-block;margin:2px;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:700;background:#eef2f7;color:var(--ink)}
+.rem-chip.z{background:var(--red);color:#fff}
+.bar-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}
+.bar-lbl{width:150px;flex:none}
+.bar-track{flex:1;background:#e6edf5;border-radius:8px;height:18px;overflow:hidden}
+.bar-fill{height:100%;border-radius:8px;transition:width .6s}
+.fld{border:2px solid var(--navy);border-radius:10px;padding:8px 10px;font-size:16px;font-weight:700;width:96px;color:var(--ink);background:#fff}
+select.fld{width:auto}
+
+/* ---------- Öğretmen ---------- */
+.card-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+details.dcard{background:#fff;border:2px solid var(--navy);border-radius:12px;padding:10px 12px}
+details.dcard summary{cursor:pointer;font-weight:800;color:var(--navy);list-style:none}
+details.dcard summary::-webkit-details-marker{display:none}
+details.dcard summary::before{content:"▸ ";color:var(--orange)}
+details.dcard[open] summary::before{content:"▾ "}
+details.dcard p{margin:6px 0;font-size:14px;line-height:1.5}
+.tq{border-left:5px solid var(--teal);background:#eef8f7;padding:6px 10px;border-radius:8px;font-size:14px;margin:6px 0}
+.tn-row{display:flex;flex-wrap:wrap;gap:16px;justify-content:center}
+.tn-card{border:2px solid #cfdbea;border-radius:12px;padding:10px;background:#fdfefe;text-align:center;overflow:auto}
+.tn-wrap{display:flex;flex-direction:column;align-items:center}
+.tn{min-width:34px;height:34px;padding:0 6px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+.tn.leaf{background:var(--green)}
+.tn-kids{display:flex;gap:10px;margin-top:12px;position:relative}
+.tn-kids>.tn-wrap{position:relative}
+.tn-kids>.tn-wrap::before{content:"";position:absolute;top:-12px;left:50%;width:2px;height:12px;background:#1E3A5F}
+.tn-kids::before{content:"";position:absolute;top:-1px;left:20%;right:20%;height:2px;background:#1E3A5F}
+.sel-row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+
+/* ---------- Animasyonlar ---------- */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes dash{to{stroke-dashoffset:0}}
+@keyframes popIn{0%{transform:scale(.2);opacity:0}70%{transform:scale(1.2)}100%{transform:scale(1);opacity:1}}
+@keyframes coreIn{0%{transform:scale(.1)}70%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes splitPulse{0%{transform:scale(1)}35%{transform:scale(1.18,.78)}70%{transform:scale(.88,1.12)}100%{transform:scale(1)}}
+@keyframes cageIn{0%{transform:scale(1.8);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes outAnim{to{opacity:0;scale:.15}}
+@keyframes rowIn{0%{opacity:0;transform:translateX(-12px)}100%{opacity:1;transform:none}}
+@keyframes alertIn{0%{transform:translateY(-16px);opacity:0}100%{transform:none;opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes alarm{0%,100%{box-shadow:inset 0 0 0 0 rgba(214,69,69,0)}50%{box-shadow:inset 0 0 60px 14px rgba(214,69,69,.65)}}
+@keyframes glow{0%,100%{box-shadow:0 0 10px rgba(38,166,154,.6)}50%{box-shadow:0 0 26px rgba(38,166,154,1)}}
+@keyframes goldPulse{0%,100%{box-shadow:0 0 10px 2px rgba(229,161,0,.6)}50%{box-shadow:0 0 26px 8px rgba(229,161,0,.95)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">⚛️</div>
+      <div>
+        <div class="h-title">Asal Simyacı</div>
+        <div class="h-sub">Kozmik Asal Reaktörü · Sayıların Gizli Parçacıkları · MAT.6.1.3</div>
+      </div>
+    </div>
+    <div class="hud">
+      <div class="hud-item"><span class="hud-l">Puan</span><span id="hScore" class="hud-v">0</span></div>
+      <div class="hud-item"><span class="hud-l">Rekor</span><span id="hBest" class="hud-v">0</span></div>
+      <div class="hud-item"><span class="hud-l">Seviye</span><span id="hLevel" class="hud-v">1</span></div>
+      <div class="hud-item"><span class="hud-l">Reaktör Bütünlüğü</span><span id="hLives" class="lives">❤️❤️❤️</span></div>
+      <button id="btnPause" class="icon-btn" title="Duraklat (P)" aria-label="Duraklat">⏸</button>
+      <button id="btnSound" class="icon-btn" title="Ses aç/kapat" aria-label="Ses">🔊</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tbtn on" data-tab="reactor">⚛ Kozmik Reaktör</button>
+    <button class="tbtn" data-tab="sieve">🧮 Eratosthenes Kalburu</button>
+    <button class="tbtn" data-tab="fusion">🔧 Asal Füzyon Reaktörü</button>
+    <button class="tbtn" data-tab="ishango">🦴 İşango &amp; Şifre Odası</button>
+    <button class="tbtn" data-tab="teacher">👩‍🏫 Öğretmen Paneli</button>
+  </nav>
+
+  <!-- ===================== REAKTÖR ===================== -->
+  <section id="tab-reactor" class="tab active">
+    <div class="rgrid">
+      <div class="sheet">
+        <div class="sheet-title"><span>Reaktör Sahası</span><span id="comboInfo" class="muted"></span></div>
+        <div id="field" class="field">
+          <canvas id="fx"></canvas>
+          <div id="rocks"></div>
+          <div class="floor">REAKTÖR ÇEKİRDEĞİ</div>
+          <div id="alert" class="alert"></div>
+          <div id="overlay" class="overlay"></div>
+        </div>
+      </div>
+
+      <div class="sheet">
+        <div class="sheet-title"><span>Asal Çarpan Ağacı</span><span id="treeLbl" class="muted"></span></div>
+        <div class="tree-box"><svg id="tree" viewBox="0 0 340 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Asal çarpan ağacı"></svg></div>
+        <div class="capsule-label">Üslü Gösterim Kapsülü</div>
+        <div id="capsule" class="capsule idle">Bir taşı 1'e ulaştır</div>
+      </div>
+
+      <div class="sheet" id="panel">
+        <div class="sheet-title"><span>Reaktör Paneli · Bölen Listesi</span></div>
+        <div class="dbox" id="divList"></div>
+        <div id="hint" class="hint">Bir taşa tıkla, ardından ASAL lazerlerden birini ateşle.</div>
+        <div class="capsule-label" id="colLbl">Saf Asallar Koleksiyonu</div>
+        <div id="collection" class="chips"></div>
+      </div>
+    </div>
+
+    <div class="console">
+      <div class="con-info">Hedef taş: <b id="tgtVal">—</b><br><span id="tgtSub" class="mono" style="opacity:.8">taşa tıklayarak hedef seç</span></div>
+      <div class="lasers" id="lasers"></div>
+      <button id="btnSeal" class="seal-btn" title="Asal taşı dondur (Boşluk / M)">🔒 ASAL MÜHÜR <span style="font-size:10px;opacity:.7">[M]</span></button>
+    </div>
+    <p class="muted" style="margin:8px 4px">Klavye: <b>2 3 5 7</b> = ÷2 ÷3 ÷5 ÷7 · <b>Q</b> = ÷11 · <b>W</b> = ÷13 · <b>M</b> / Boşluk = Asal Mühür · <b>Tab</b> = hedef değiştir · <b>P</b> = duraklat</p>
+  </section>
+
+  <!-- ===================== KALBUR ===================== -->
+  <section id="tab-sieve" class="tab">
+    <div class="twocol">
+      <div class="sheet">
+        <div class="sheet-title"><span>İnteraktif Eratosthenes Kalburu (1–100)</span><span id="svCount" class="muted"></span></div>
+        <div id="sgrid" class="sgrid"></div>
+        <div class="svbtns" id="svBtns"></div>
+        <div id="svMsg" class="info-box t">Önce 1'i ele, sonra 2, 3, 5 ve 7'nin katlarını sırayla kalburdan geçir. Herhangi bir sayıya tıklayıp bilgi alabilirsin.</div>
+      </div>
+      <div class="sheet">
+        <div class="sheet-title"><span>Kalbur Günlüğü</span></div>
+        <div id="svLog" class="svlog muted">Henüz eleme yapılmadı.</div>
+        <div class="info-box o"><b>Neden 7'de duruyoruz?</b><br>100'e kadar olan her bileşik sayının, en az bir asal çarpanı 10'dan küçük ya da 10'a eşit olmalıdır (çünkü 10 × 10 = 100). 10'a kadar olan asallar 2, 3, 5 ve 7'dir. 11'in ilk elenmemiş katı 11 × 11 = 121 olduğundan 100'ün dışındadır.</div>
+        <div class="info-box g"><b>Neden 1 asal değildir?</b><br>Bir sayının asal olması için tam olarak <b>iki</b> böleni olmalıdır: 1 ve kendisi. 1'in yalnızca bir böleni (1'in kendisi) vardır. Ayrıca 1'i asal sayılırsa asal çarpanlara ayırma tek türlü olmaz (6 = 2·3 = 1·2·3 = 1·1·2·3 …).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FÜZYON ===================== -->
+  <section id="tab-fusion" class="tab">
+    <div class="twocol">
+      <div class="sheet">
+        <div class="sheet-title"><span>Asal Füzyon Reaktörü · Tersine Mühendislik</span><span id="fuScore" class="muted"></span></div>
+        <div class="dots" id="fuDots"></div>
+        <div id="fuTarget" class="info-box o"></div>
+        <div class="capsule-label">Asal parçacıklar (tıkla ve yuvaya ekle)</div>
+        <div class="parts" id="fuParts"></div>
+        <div class="capsule-label">Füzyon yuvası (parçacığı kaldırmak için tıkla)</div>
+        <div class="slots" id="fuSlots"></div>
+        <div class="product" id="fuProduct"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="fuGo" class="btn teal">⚡ Füzyonu Başlat</button>
+          <button id="fuClear" class="btn ghost">Yuvayı Temizle</button>
+          <button id="fuHint" class="btn ghost">💡 İpucu</button>
+          <button id="fuNext" class="btn orange" style="display:none">Sonraki Hedef ▶</button>
+        </div>
+        <div id="fuMsg" class="info-box t" style="display:none"></div>
+      </div>
+      <div class="sheet">
+        <div class="sheet-title"><span>Nasıl çalışır?</span></div>
+        <div class="info-box">Reaktöre yalnızca <b>asal parçacıklar</b> koyabilirsin. Parçacıkların çarpımı bir <b>bileşik çekirdek</b> oluşturur. Görevdeki kısıtları sağlayan bir çekirdek üret.</div>
+        <div class="info-box t"><b>Düşün:</b> Aynı asalı birden çok kez kullanabilirsin (2 · 2 · 2 = 2³). “Farklı asal çarpan sayısı” ile “toplam asal çarpan sayısı” aynı şey değildir.</div>
+        <div class="info-box g"><b>Aritmetiğin temel teoremi:</b> Her bileşik sayı, çarpanların sırası dışında tek bir biçimde asalların çarpımı olarak yazılır. Bu yüzden çekirdeğin üslü gösterimi onun “parmak izi”dir.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== İŞANGO ===================== -->
+  <section id="tab-ishango" class="tab">
+    <div class="twocol">
+      <div class="sheet">
+        <div class="sheet-title"><span>İşango Kemiği · Tarihin En Eski Asal İzleri mi?</span></div>
+        <svg id="boneSvg" class="bone-svg" viewBox="0 0 720 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="İşango kemiği çentik grupları"></svg>
+        <div class="sel-row" id="isBtns"></div>
+        <div id="isInfo" class="info-box t">Bir çentik grubuna tıkla: çentikleri eşit gruplara ayırmayı dene ve asal olup olmadığını keşfet.</div>
+        <div id="isTable" style="margin-top:6px"></div>
+        <div class="info-box o"><b>Tarihçe:</b> Kongo'daki İşango bölgesinde bulunan ve yaklaşık 20 000 yıl öncesine tarihlenen bir kemik üzerinde, bir sütunda 11, 13, 17 ve 19 çentikli gruplar yorumlanmıştır. Bazı araştırmacılar bunu asal sayı farkındalığının işareti sayar, bazıları ise bunun bir sayma/takvim aracı olabileceğini söyler. Yani yorum <b>tartışmalıdır</b>: sınıfta “kanıt mı, tesadüf mü?” diye sorgulayabilirsiniz.</div>
+      </div>
+
+      <div class="sheet">
+        <div class="sheet-title"><span>Şifre Odası · İnternet Güvenliği ve Asallar</span></div>
+        <div class="info-box">Bankanın web sitesine girdiğinde verilerin <b>şifrelenir</b>. Pek çok şifreleme yöntemi (RSA gibi) şu fikre dayanır: <b>iki büyük asalı çarpmak kolaydır, çarpımı yeniden asal çarpanlarına ayırmak çok zordur.</b> Çarpım herkese açık, iki asal çarpan ise gizli anahtardır.</div>
+
+        <div class="capsule-label">1) Gizli anahtarı kır</div>
+        <div id="keyPuz"></div>
+
+        <div class="capsule-label" style="margin-top:14px">2) Kaba kuvvetle çarpanlara ayırma denemesi</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select id="rsaP" class="fld"></select> ×
+          <select id="rsaQ" class="fld"></select>
+          <button id="rsaGo" class="btn teal">Çarpıp ayırmayı dene</button>
+        </div>
+        <div id="rsaOut" class="info-box" style="display:none"></div>
+        <p class="muted">Gerçek sistemlerde asallar yüzlerce basamaklıdır; bu deneme yalnızca fikri gösterir. Tarayıcın birkaç milyon deneme yapabilir, ama 600 basamaklı sayılar için evrenin ömrü yetmez.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ÖĞRETMEN ===================== -->
+  <section id="tab-teacher" class="tab">
+    <div class="sheet" style="margin-bottom:12px">
+      <div class="sheet-title"><span>Sıra Bağımsızlığı Laboratuvarı · Aritmetiğin Temel Teoremi</span></div>
+      <p class="muted">Bir sayıyı hangi çarpanlara ayırarak başlarsan başla, ağacın yaprakları (asal çarpanlar) hep aynı çıkar. Sayıyı seç, farklı rastgele ağaçlar çizdir.</p>
+      <div class="sel-row" id="ordBtns"></div>
+      <div id="ordOut" class="tn-row"></div>
+      <div id="ordMsg" class="info-box g" style="display:none"></div>
+    </div>
+
+    <div class="sheet" style="margin-bottom:12px">
+      <div class="sheet-title"><span>Sınıf İçi Tartışma Kartları · Kavram Yanılgıları</span></div>
+      <div class="card-g" id="miscCards"></div>
+    </div>
+
+    <div class="twocol">
+      <div class="sheet">
+        <div class="sheet-title"><span>Kazanım ve Etkinlik Eşlemesi</span></div>
+        <div class="info-box"><b>MAT.6.1.3.</b> Bir doğal sayının asal olma durumunu ve asal çarpanlarını çözümleyebilme.</div>
+        <div class="info-box t"><b>Oyun bölümleri ve karşılıkları</b>
+          <ul style="margin:6px 0 0 18px;font-size:14px;line-height:1.55">
+            <li><b>Kozmik Reaktör:</b> asal çarpan ağacı ve bölen listesi ile çarpanlara ayırma, üslü gösterim, bölünebilme kurallarının kullanımı, saf asalı tanıma.</li>
+            <li><b>Eratosthenes Kalburu:</b> 100'e kadar asalların keşfi, 1'in asal olmaması, 2'nin tek çift asal olması.</li>
+            <li><b>Asal Füzyon:</b> verilen koşula göre çarpanlardan sayı kurma (tersine düşünme), üslü ifadeler.</li>
+            <li><b>İşango ve Şifre Odası:</b> asal sayıların tarihteki ve günlük hayattaki yeri.</li>
+          </ul></div>
+        <p class="muted">Not: Alt kazanım ifadelerini kullandığınız Maarif Modeli öğretim programındaki metinle karşılaştırıp gerekirse kendi ifadelerinizle güncelleyin.</p>
+      </div>
+      <div class="sheet">
+        <div class="sheet-title"><span>Önerilen Ders Akışı ve Çıkış Kartları</span></div>
+        <ol style="margin:0 0 0 18px;font-size:14px;line-height:1.7">
+          <li>5 dk · Kalbur ile asalları keşfet, “1 neden asal değil?” tartışması.</li>
+          <li>10 dk · Reaktör: ikili çalışma, biri lazeri seçer, diğeri bölen listesini defterine yazar.</li>
+          <li>5 dk · Füzyon: tersine mühendislik görevi, ikili yarışma.</li>
+          <li>5 dk · Sıra bağımsızlığı laboratuvarı ve tartışma kartları.</li>
+          <li>5 dk · Çıkış kartı soruları.</li>
+        </ol>
+        <details class="dcard" style="margin-top:10px"><summary>Çıkış kartı soruları (cevaplar için aç)</summary>
+          <p><b>1)</b> 84 sayısını asal çarpanlarına ayır ve üslü yaz.<br><i>Cevap: 84 = 2² · 3 · 7</i></p>
+          <p><b>2)</b> 97 asal mıdır? Hangi sayılara bölünüp bölünmediğini kontrol ederek açıkla.<br><i>Cevap: 2, 3, 5, 7'ye bölünmez (11² = 121 &gt; 97); asaldır.</i></p>
+          <p><b>3)</b> Ali 60'ı 6 × 10, Ayşe 4 × 15 diye ayırdı. Asal çarpanları farklı mı çıkar?<br><i>Cevap: Hayır, ikisi de 2² · 3 · 5 verir.</i></p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* =====================================================================
+   Yardımcılar
+===================================================================== */
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+const COL = { navy:'#1E3A5F', teal:'#26A69A', orange:'#FB8C00', green:'#2E9E5B', red:'#D64545', gold:'#E5A100', purple:'#6A4C93' };
+const LASERS = [2, 3, 5, 7, 11, 13];
+const LCOL = { 2:'#FB8C00', 3:'#26A69A', 5:'#E5A100', 7:'#5C7FA8', 11:'#8E6BBF', 13:'#1E3A5F' };
+const LKEY = { 2:'2', 3:'3', 5:'5', 7:'7', 11:'Q', 13:'W' };
+const NOTE = { 2:130.81, 3:164.81, 5:196.00, 7:246.94, 11:261.63, 13:293.66 };
+const PURE = [17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97];
+const ROCK = 68, FLOOR = 30;
+
+function isPrime(n){ if (n < 2) return false; for (let i = 2; i * i <= n; i++) if (n % i === 0) return false; return true; }
+function factorize(n){ const f = []; let m = n; for (let p = 2; p * p <= m; p++){ while (m % p === 0){ f.push(p); m /= p; } } if (m > 1) f.push(m); return f; }
+function expMap(f){ const m = new Map(); f.slice().sort((a,b)=>a-b).forEach(p => m.set(p, (m.get(p) || 0) + 1)); return m; }
+function expForm(f){ return Array.from(expMap(f)).map(([p,e]) => e > 1 ? p + '<sup>' + e + '</sup>' : '' + p).join(' · '); }
+function digitSum(n){ return String(n).split('').reduce((s,d) => s + Number(d), 0); }
+function altDiff(n){ const d = String(n).split('').reverse().map(Number); let a = 0, b = 0; d.forEach((x,i) => { if (i % 2 === 0) a += x; else b += x; }); return Math.abs(a - b); }
+
+/* =====================================================================
+   Ses (Web Audio API)
+===================================================================== */
+const SFX = {
+  ctx:null, muted:false,
+  init(){
+    if (!this.ctx){ try { const AC = window.AudioContext || window.webkitAudioContext; if (AC) this.ctx = new AC(); } catch(e){} }
+    if (this.ctx && this.ctx.state === 'suspended'){ try { this.ctx.resume(); } catch(e){} }
+  },
+  tone(freq, dur, type, vol, delay, slideTo){
+    if (!this.ctx || this.muted) return;
+    try {
+      const t = this.ctx.currentTime + (delay || 0);
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol || 0.1, t + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(this.ctx.destination);
+      o.start(t); o.stop(t + dur + 0.05);
+    } catch(e){}
+  },
+  freq(p){ return NOTE[p] || (180 + (p % 12) * 22); },
+  laser(p){ const f = this.freq(p); this.tone(f * 2, 0.16, 'sawtooth', 0.05, 0, f * 0.9); this.tone(f, 0.35, 'triangle', 0.14, 0); },
+  chord(primes){
+    const set = Array.from(new Set(primes));
+    set.forEach((p, i) => {
+      const f = this.freq(p);
+      this.tone(f * 2, 1.5, 'sine', 0.11, 0);
+      this.tone(f * 4, 0.35, 'triangle', 0.05, 0.1 + i * 0.09);
+    });
+  },
+  wrong(){ this.tone(120, 0.32, 'square', 0.07, 0, 70); },
+  hole(){ this.tone(520, 0.9, 'sawtooth', 0.1, 0, 38); this.tone(70, 0.9, 'sine', 0.2, 0); },
+  seal(){ this.tone(880, 0.55, 'sine', 0.11, 0); this.tone(1320, 0.6, 'sine', 0.08, 0.08); this.tone(1760, 0.7, 'triangle', 0.05, 0.16); },
+  heal(){ [523.25, 659.25, 783.99, 1046.5].forEach((f,i) => this.tone(f, 0.25, 'triangle', 0.1, i * 0.1)); },
+  over(){ [392, 330, 262, 196].forEach((f,i) => this.tone(f, 0.45, 'sawtooth', 0.09, i * 0.22)); },
+  ui(){ this.tone(660, 0.07, 'square', 0.04, 0); },
+  win(){ [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f,i) => this.tone(f, 0.35, 'triangle', 0.1, i * 0.09)); }
+};
+
+/* =====================================================================
+   Oyun durumu
+===================================================================== */
+const G = {
+  running:false, paused:false, over:false,
+  score:0, best:0, lives:3, level:1, resolved:0,
+  rocks:[], nextId:1, spawnT:0, selected:null, focus:null,
+  sealStreak:0, compStreak:0, collection:[], factored:0,
+  W:600, H:470, lastT:0, tgtShown:null
+};
+try { G.best = parseInt(localStorage.getItem('asalSimyaciBest') || '0', 10) || 0; } catch(e){}
+
+const field = $('#field'), rocksLayer = $('#rocks'), canvas = $('#fx'), ctx = canvas.getContext('2d');
+let activeTab = 'reactor';
+const FX = { beams:[], parts:[], rings:[] };
+
+function resizeField(){
+  const w = field.clientWidth, h = field.clientHeight;
+  if (!w || !h) return;
+  const dpr = window.devicePixelRatio || 1;
+  G.W = w; G.H = h;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+/* ---------- HUD ---------- */
+function updateHUD(){
+  $('#hScore').textContent = G.score;
+  $('#hBest').textContent = Math.max(G.best, G.score);
+  $('#hLevel').textContent = G.level;
+  $('#hLives').textContent = '❤️'.repeat(G.lives) + '💔'.repeat(3 - G.lives);
+  $('#comboInfo').textContent = 'Mühür kombosu ' + G.sealStreak + '/3 · Çarpan kombosu ' + G.compStreak + '/5';
+}
+
+let toastT = null;
+function toast(msg, type, ms){
+  const a = $('#alert');
+  a.textContent = msg; a.className = 'alert show ' + (type || 'navy');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { a.className = 'alert'; }, ms || 2300);
+}
+function hint(msg, type){ const h = $('#hint'); h.className = 'hint ' + (type || ''); h.innerHTML = msg; }
+
+/* ---------- Bölünebilme ipuçları ---------- */
+function ruleHint(p, n){
+  switch (p){
+    case 2: return '<b>' + n + ' ÷ 2 olmadı!</b> 2 ile bölünebilmesi için son basamağın çift (0, 2, 4, 6, 8) olması gerekir. ' + n + ' sayısının son basamağı ' + (n % 10) + '.';
+    case 3: return '<b>' + n + ' ÷ 3 olmadı!</b> 3 ile bölünebilmesi için rakamları toplamının 3\'ün katı olması gerekir. Burada rakamlar toplamı ' + digitSum(n) + ', 3\'ün katı değil.';
+    case 5: return '<b>' + n + ' ÷ 5 olmadı!</b> 5 ile bölünebilmesi için son basamağın 0 veya 5 olması gerekir! ' + n + ' sayısının son basamağı ' + (n % 10) + '.';
+    case 7: return '<b>' + n + ' ÷ 7 olmadı!</b> 7 için kısa bir kural yok; bölerek bakalım: ' + n + ' = 7 · ' + Math.floor(n / 7) + ' + ' + (n % 7) + '. Kalan 0 olmalıydı.';
+    case 11: return '<b>' + n + ' ÷ 11 olmadı!</b> Tek ve çift sıradaki rakamları ayrı ayrı topla, farka bak: fark 0 veya 11\'in katı olmalı. Burada fark ' + altDiff(n) + '.';
+    case 13: return '<b>' + n + ' ÷ 13 olmadı!</b> Bölerek bakalım: ' + n + ' = 13 · ' + Math.floor(n / 13) + ' + ' + (n % 13) + '. Kalan 0 olmalıydı.';
+  }
+  return '';
+}
+
+/* =====================================================================
+   Göktaşı üretimi
+===================================================================== */
+function genComposite(level){
+  const maxV = Math.min(36 + level * 20, 220);
+  const pool = level < 2 ? [2,2,3,3,5] : level < 4 ? [2,2,3,3,5,5,7] : [2,2,3,3,5,7,11,13];
+  const kMax = Math.min(6, 2 + Math.ceil(level / 2));
+  for (let i = 0; i < 80; i++){
+    const k = 2 + Math.floor(Math.random() * (kMax - 1));
+    let v = 1;
+    for (let j = 0; j < k; j++) v *= pick(pool);
+    if (v >= 6 && v <= maxV) return v;
+  }
+  return 36;
+}
+
+function activeRocks(){ return G.rocks.filter(r => r.state === 'fall' || r.state === 'bh'); }
+
+function spawnRock(forceComposite){
+  const used = G.rocks.filter(r => r.y < 150 && (r.state === 'fall' || r.state === 'bh')).map(r => r.lane);
+  const lanes = [0.13, 0.31, 0.5, 0.69, 0.87].map((x,i) => i).filter(i => used.indexOf(i) < 0);
+  if (!lanes.length) return false;
+  const lane = pick(lanes);
+  const pureChance = Math.min(0.42, 0.26 + G.level * 0.02);
+  let pure = !forceComposite && Math.random() < pureChance;
+  let val = 0;
+  for (let t = 0; t < 12; t++){
+    val = pure ? pick(PURE) : genComposite(G.level);
+    if (!G.rocks.some(r => r.orig === val)) break;
+  }
+  const steps = pure ? 1 : factorize(val).length;
+  let T = pure ? 11 : 9 + 2.0 * steps;
+  T *= Math.max(0.5, Math.pow(0.93, G.level - 1));
+  const travel = G.H - FLOOR + 4 + ROCK;
+  const r = {
+    id:G.nextId++, orig:val, val:val, pure:pure, factors:[], steps:[], lane:lane,
+    xf:[0.13,0.31,0.5,0.69,0.87][lane], y:-ROCK - 4, speed:travel / T, state:'fall',
+    errors:0, bh:false, sealed:false, el:null
+  };
+  const el = document.createElement('div');
+  el.className = 'rock';
+  el.innerHTML = '<div class="rock-body"><span class="rv">' + val + '</span></div><div class="rock-cores"></div>';
+  el.addEventListener('pointerdown', function(e){ e.preventDefault(); e.stopPropagation(); SFX.init(); selectRock(r.id); });
+  rocksLayer.appendChild(el);
+  r.el = el;
+  G.rocks.push(r);
+  placeRock(r);
+  if (!G.focus){ G.focus = r; renderAll(); }
+  return true;
+}
+
+function placeRock(r){
+  const wob = r.state === 'bh' ? Math.sin(performance.now() / 90) * 4 : 0;
+  r.el.style.transform = 'translate(' + (r.xf * G.W - ROCK / 2 + wob).toFixed(1) + 'px,' + r.y.toFixed(1) + 'px)';
+}
+function rockCenter(r){ return { x:r.xf * G.W, y:r.y + ROCK / 2 }; }
+
+function getTarget(){
+  const a = activeRocks();
+  if (!a.length) return null;
+  const s = a.find(r => r.id === G.selected);
+  if (s) return s;
+  return a.reduce((m, r) => r.y > m.y ? r : m, a[0]);
+}
+function selectRock(id){
+  if (!G.running || G.paused) return;
+  const r = G.rocks.find(x => x.id === id);
+  if (!r || (r.state !== 'fall' && r.state !== 'bh')) return;
+  G.selected = id; G.focus = r;
+  SFX.ui(); refreshTarget(true); renderAll();
+}
+function refreshTarget(force){
+  const t = getTarget();
+  G.rocks.forEach(r => r.el.classList.toggle('target', r === t));
+  const id = t ? t.id + ':' + t.val : '';
+  if (force || id !== G.tgtShown){
+    G.tgtShown = id;
+    $('#tgtVal').textContent = t ? t.val : '—';
+    $('#tgtSub').textContent = t ? (t.id === G.selected ? 'seçili hedef' : 'en alçaktaki taş') : 'taşa tıklayarak hedef seç';
+  }
+}
+
+/* =====================================================================
+   Efektler (canvas)
+===================================================================== */
+function burst(x, y, color, n){
+  for (let i = 0; i < n; i++){
+    const a = Math.random() * Math.PI * 2, s = rand(40, 190);
+    FX.parts.push({ x:x, y:y, vx:Math.cos(a) * s, vy:Math.sin(a) * s - 30, life:rand(.4, .9), max:.9, color:color, size:rand(2, 5), g:220 });
+  }
+}
+function pull(x, y, color){
+  for (let i = 0; i < 18; i++){
+    const a = Math.random() * Math.PI * 2, d = rand(50, 80);
+    FX.parts.push({ x:x + Math.cos(a) * d, y:y + Math.sin(a) * d, vx:-Math.cos(a) * 110, vy:-Math.sin(a) * 110, life:.6, max:.6, color:color, size:rand(2, 4), g:0 });
+  }
+}
+function ring(x, y, color, r0, dr){ FX.rings.push({ x:x, y:y, r:r0 || 10, dr:dr || 120, life:.5, max:.5, color:color }); }
+function beam(x1, y1, x2, y2, color){ FX.beams.push({ x1:x1, y1:y1, x2:x2, y2:y2, color:color, life:.28, max:.28 }); }
+
+function drawFx(dt){
+  ctx.clearRect(0, 0, G.W, G.H);
+  ctx.save();
+  ctx.lineCap = 'round';
+  FX.beams = FX.beams.filter(b => b.life > 0);
+  FX.beams.forEach(b => {
+    const a = b.life / b.max;
+    ctx.globalAlpha = a; ctx.strokeStyle = b.color; ctx.shadowColor = b.color; ctx.shadowBlur = 14;
+    ctx.lineWidth = 2 + 5 * a;
+    ctx.beginPath(); ctx.moveTo(b.x1, b.y1); ctx.lineTo(b.x2, b.y2); ctx.stroke();
+    b.life -= dt;
+  });
+  FX.rings = FX.rings.filter(r => r.life > 0);
+  FX.rings.forEach(r => {
+    const a = r.life / r.max;
+    ctx.globalAlpha = a; ctx.strokeStyle = r.color; ctx.shadowColor = r.color; ctx.shadowBlur = 10; ctx.lineWidth = 4 * a + 1;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2); ctx.stroke();
+    r.r += r.dr * dt; r.life -= dt;
+  });
+  ctx.shadowBlur = 0;
+  FX.parts = FX.parts.filter(p => p.life > 0);
+  FX.parts.forEach(p => {
+    ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.g * dt; p.life -= dt;
+  });
+  ctx.restore();
+}
+
+function laserOrigin(el){
+  const fr = field.getBoundingClientRect(), br = el.getBoundingClientRect();
+  return { x:Math.min(Math.max(br.left + br.width / 2 - fr.left, 10), G.W - 10), y:G.H };
+}
+
+/* =====================================================================
+   Oyun eylemleri
+===================================================================== */
+function fireLaser(p){
+  SFX.init();
+  if (!G.running || G.paused || G.over) return;
+  const r = getTarget();
+  if (!r){ hint('Henüz hedef taş yok. Bir taş inmesini bekle.', ''); return; }
+  G.focus = r;
+  const btn = $('.laser[data-p="' + p + '"]');
+  const o = laserOrigin(btn), c = rockCenter(r);
+  beam(o.x, o.y, c.x, c.y, LCOL[p]);
+  SFX.laser(p);
+
+  if (r.pure){
+    if (r.state === 'bh'){
+      G.sealStreak = 0; G.compStreak = 0;
+      pull(c.x, c.y, COL.purple);
+      hint('<b>Karadelik lazeri yuttu!</b> ' + r.orig + ' asal bir sayıdır. Kurtulmak için <b>ASAL MÜHÜR</b> kullan.', 'err');
+      updateHUD(); renderAll(); return;
+    }
+    triggerBlackHole(r, p); return;
+  }
+  if (r.val % p === 0) divideRock(r, p); else recoil(r, p, o, c);
+}
+
+function divideRock(r, p){
+  const before = r.val, after = before / p;
+  r.steps.push({ p:p, before:before, after:after });
+  r.factors.push(p);
+  r.val = after;
+  const c = rockCenter(r);
+  burst(c.x, c.y, COL.green, 16); burst(c.x, c.y, COL.orange, 10); ring(c.x, c.y, COL.green);
+  G.score += 10;
+  r.el.classList.remove('split'); void r.el.offsetWidth; r.el.classList.add('split');
+  r.el.querySelector('.rv').textContent = r.val;
+  const core = document.createElement('div'); core.className = 'core'; core.textContent = p;
+  r.el.querySelector('.rock-cores').appendChild(core);
+  if (after === 1){
+    completeRock(r);
+  } else {
+    hint('<b>' + before + ' ÷ ' + p + ' = ' + after + '</b> · ' + p + ' kararlı çekirdek olarak sabitlendi. Kalan ' + after + ' için devam et.', 'ok');
+  }
+  updateHUD(); renderAll();
+}
+
+function recoil(r, p, o, c){
+  r.errors++; G.compStreak = 0; G.sealStreak = 0;
+  G.score = Math.max(0, G.score - 5);
+  const side = Math.random() < .5 ? -1 : 1;
+  beam(c.x, c.y, Math.min(Math.max(c.x + side * rand(90, 140), 8), G.W - 8), Math.min(c.y + rand(70, 130), G.H - 40), COL.red);
+  ring(c.x, c.y, COL.red, 8, 90);
+  SFX.wrong();
+  const panel = $('#panel'); panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
+  field.classList.remove('shake'); void field.offsetWidth; field.classList.add('shake');
+  hint(ruleHint(p, r.val), 'err');
+  updateHUD();
+}
+
+function triggerBlackHole(r){
+  r.state = 'bh'; r.bh = true; r.speed *= 2;
+  r.el.classList.add('blackhole');
+  const c = rockCenter(r);
+  pull(c.x, c.y, COL.purple); ring(c.x, c.y, COL.purple, 12, 160);
+  SFX.hole();
+  toast('HATA! Asal sayı parçalanamaz! Karadelik tetiklendi!', 'red', 3000);
+  field.classList.remove('alarm'); void field.offsetWidth; field.classList.add('alarm');
+  hint('<b>' + r.orig + ' asal bir sayıdır:</b> 1 ve kendisinden başka böleni yok, bu yüzden parçalanamaz. Karadelik hızlandı! <b>ASAL MÜHÜR</b> ile dondur.', 'err');
+  loseLife();
+  updateHUD(); renderAll();
+}
+
+function sealRock(){
+  SFX.init();
+  if (!G.running || G.paused || G.over) return;
+  const r = getTarget();
+  if (!r){ hint('Mühürlenecek taş yok.', ''); return; }
+  G.focus = r;
+  const o = laserOrigin($('#btnSeal')), c = rockCenter(r);
+  if (r.pure){
+    const wasBH = r.bh;
+    r.state = 'sealing'; r.sealed = true;
+    r.steps = [{ p:r.orig, before:r.orig, after:1 }]; r.factors = [r.orig];
+    r.el.classList.remove('blackhole', 'target'); r.el.classList.add('sealed');
+    beam(o.x, o.y, c.x, c.y, COL.gold); ring(c.x, c.y, COL.gold, 10, 140); burst(c.x, c.y, COL.gold, 26);
+    SFX.seal();
+    G.collection.push(r.orig);
+    G.resolved++;
+    if (!wasBH){
+      G.score += 100 + 25 * G.sealStreak;
+      G.sealStreak++;
+      if (G.sealStreak >= 3){ G.sealStreak = 0; heal('3 asal taşı hatasız mühürledin!'); }
+    } else {
+      G.score += 50; G.sealStreak = 0;
+    }
+    toast(r.orig + ' mühürlendi: Kendinden başka böleni yok!', 'gold', 2200);
+    hint('<b>Tekil Kök Kristal!</b> ' + r.orig + ' | ' + r.orig + ' → 1. Asal sayı kendinden başka böleni olmadığı için dallanmaz.', 'gold');
+    setTimeout(() => { r.el.classList.add('out'); setTimeout(() => removeRock(r), 800); }, 1000);
+    checkLevel();
+  } else if (isPrime(r.val)){
+    SFX.wrong();
+    hint('<b>Bu taş bileşik bir sayıdan geldi.</b> Kalan ' + r.val + ' asal; onu kendisiyle bölerek (÷' + r.val + ') çarpan listesini tamamla. Mühür yalnızca baştan saf asal olan taşlar içindir.', 'err');
+  } else {
+    r.errors++; G.score = Math.max(0, G.score - 10);
+    SFX.wrong();
+    beam(o.x, o.y, c.x, c.y, COL.red);
+    toast('Bileşik sayı mühürlenemez! −1 Can', 'red', 2200);
+    hint('<b>' + r.val + ' bileşik bir sayıdır</b> (' + expForm(factorize(r.val)) + '). Asal çarpanlarına ayırmak için lazer kullan.', 'err');
+    loseLife();
+  }
+  updateHUD(); renderAll();
+}
+
+function completeRock(r){
+  r.state = 'done';
+  r.el.classList.add('done'); r.el.classList.remove('target');
+  G.score += 20 + 10 * r.factors.length; G.factored++; G.resolved++;
+  SFX.chord(r.factors);
+  const c = rockCenter(r);
+  burst(c.x, c.y, COL.gold, 24); burst(c.x, c.y, COL.green, 24); ring(c.x, c.y, COL.gold, 10, 170);
+  hint('<b>Nötrlendi!</b> ' + r.orig + ' = ' + expForm(r.factors) + '. Bütün çarpanlar asal, bölen listesi 1\'de bitti.', 'ok');
+  if (r.errors === 0){
+    G.compStreak++;
+    if (G.compStreak >= 5){ G.compStreak = 0; heal('5 bileşik sayıyı sıfır hatayla çözdün!'); }
+  }
+  setTimeout(() => { r.el.classList.add('out'); setTimeout(() => removeRock(r), 800); }, 1100);
+  checkLevel();
+}
+
+function heal(msg){
+  if (G.lives < 3){ G.lives++; toast('KOMBO! +1 Can · ' + msg, 'gold', 2800); SFX.heal(); }
+  else { G.score += 50; toast('KOMBO! Canların dolu: +50 puan · ' + msg, 'gold', 2800); SFX.heal(); }
+  updateHUD();
+}
+
+function checkLevel(){
+  if (G.level < 12 && G.resolved >= G.level * 5){
+    G.level++;
+    toast('Seviye ' + G.level + '! Göktaşları hızlanıyor ve büyüyor.', 'navy', 2600);
+  }
+}
+
+function loseLife(){
+  G.lives = Math.max(0, G.lives - 1);
+  G.sealStreak = 0; G.compStreak = 0;
+  const panel = $('#panel'); panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
+  updateHUD();
+  if (G.lives <= 0) gameOver();
+}
+
+function removeRock(r){
+  if (r.el && r.el.parentNode) r.el.parentNode.removeChild(r.el);
+  const i = G.rocks.indexOf(r);
+  if (i >= 0) G.rocks.splice(i, 1);
+  if (G.selected === r.id) G.selected = null;
+}
+
+function floorHit(r){
+  const c = { x:r.xf * G.W, y:G.H - FLOOR };
+  burst(c.x, c.y, COL.red, 24); ring(c.x, c.y, COL.red, 10, 200);
+  SFX.wrong();
+  toast(r.bh ? 'Karadelik reaktöre çarptı! −1 Can' : 'Taş reaktöre çarptı! −1 Can', 'red', 2400);
+  field.classList.remove('shake'); void field.offsetWidth; field.classList.add('shake');
+  hint('<b>' + r.orig + '</b> reaktöre ulaştı. ' + (r.pure ? 'Bu asal bir sayıydı: ASAL MÜHÜR ile dondurman gerekirdi.' : 'Bileşik sayıyı daha hızlı asal çarpanlarına ayırmalısın.'), 'err');
+  removeRock(r);
+  loseLife();
+}
+
+/* =====================================================================
+   Ana döngü
+===================================================================== */
+function update(dt){
+  G.spawnT -= dt;
+  if (G.spawnT <= 0){
+    const maxR = G.level >= 5 ? 4 : 3;
+    if (activeRocks().length < maxR){
+      if (spawnRock(false)) G.spawnT = Math.max(3, 8 - 0.45 * G.level); else G.spawnT = 0.8;
+    } else G.spawnT = 1;
+  }
+  const list = G.rocks.slice();
+  for (let i = 0; i < list.length; i++){
+    const r = list[i];
+    if (r.state === 'fall' || r.state === 'bh'){
+      r.y += r.speed * dt;
+      placeRock(r);
+      if (r.y + ROCK >= G.H - FLOOR){ floorHit(r); if (G.over) return; }
+    }
+  }
+  refreshTarget(false);
+}
+
+function loop(ts){
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.05, ((ts - G.lastT) / 1000) || 0);
+  G.lastT = ts;
+  if (activeTab !== 'reactor') return;
+  if (G.running && !G.paused && !G.over) update(dt);
+  drawFx(dt);
+}
+
+/* =====================================================================
+   Oyun akışı
+===================================================================== */
+function showOverlay(kind){
+  const o = $('#overlay');
+  let h = '';
+  if (kind === 'start'){
+    h = '<div class="ov-card"><h2>⚛ Asal Simyacı</h2><p>Kozmik Asal Reaktörü\'nü koru!</p><ul>' +
+        '<li>Yukarıdan sayı taşları iner. Bir taşa tıkla (ya da en alçaktaki otomatik hedeflenir).</li>' +
+        '<li>Elinde yalnızca <b>asal lazerler</b> var: ÷2 ÷3 ÷5 ÷7 ÷11 ÷13. Taşı <b>1</b> olana kadar bölerek asal çarpanlarına ayır.</li>' +
+        '<li>Bölünmeyen lazer geri teper; bölünebilme ipucunu oku.</li>' +
+        '<li><b>Dikkat:</b> Bazı taşlar saf asaldır! Onlara lazer sıkarsan <b>karadelik</b> olur. Onları <b>ASAL MÜHÜR</b> ile dondur.</li>' +
+        '<li>3 canın var. 3 asalı hatasız mühürle ya da 5 bileşik sayıyı hatasız çöz: +1 can.</li></ul>' +
+        '<button class="btn orange" data-act="start">▶ Reaktörü Başlat</button></div>';
+  } else if (kind === 'pause'){
+    h = '<div class="ov-card"><h2>⏸ Duraklatıldı</h2><p>Hazır olduğunda devam et.</p>' +
+        '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px"><button class="btn orange" data-act="resume">Devam Et</button><button class="btn ghost" data-act="start">Yeniden Başlat</button></div></div>';
+  } else {
+    h = '<div class="ov-card"><h2>💥 Reaktör Çöktü</h2><p>Puan: <b>' + G.score + '</b> · Rekor: <b>' + G.best + '</b></p>' +
+        '<p>Çözümlenen bileşik sayı: <b>' + G.factored + '</b> · Mühürlenen asal: <b>' + G.collection.length + '</b></p>' +
+        '<p class="muted" style="color:#cfe0f5">Unutma: asal sayı kendinden başka böleni olmayan sayıdır; parçalanmaz, mühürlenir.</p>' +
+        '<button class="btn orange" data-act="start">Yeniden Dene</button></div>';
+  }
+  o.innerHTML = h; o.classList.remove('hidden');
+}
+function hideOverlay(){ $('#overlay').classList.add('hidden'); }
+
+function startGame(){
+  SFX.init();
+  G.rocks.forEach(r => { if (r.el && r.el.parentNode) r.el.parentNode.removeChild(r.el); });
+  G.rocks = []; FX.beams = []; FX.parts = []; FX.rings = [];
+  Object.assign(G, { running:true, paused:false, over:false, score:0, lives:3, level:1, resolved:0, spawnT:6,
+    selected:null, focus:null, sealStreak:0, compStreak:0, collection:[], factored:0, tgtShown:null });
+  hideOverlay();
+  $('#alert').className = 'alert';
+  resizeField();
+  spawnRock(true);
+  hint('Bir taşa tıkla, ardından ASAL lazerlerden birini ateşle.', '');
+  updateHUD(); refreshTarget(true); renderAll();
+  $('#btnPause').textContent = '⏸';
+}
+function pauseGame(on){
+  if (!G.running || G.over) return;
+  G.paused = on;
+  if (on){ showOverlay('pause'); $('#btnPause').textContent = '▶'; }
+  else { hideOverlay(); $('#btnPause').textContent = '⏸'; }
+}
+function gameOver(){
+  G.over = true; G.running = false;
+  if (G.score > G.best){ G.best = G.score; try { localStorage.setItem('asalSimyaciBest', String(G.best)); } catch(e){} }
+  SFX.over(); updateHUD(); showOverlay('over');
+}
+
+/* =====================================================================
+   Paneller: ağaç, bölen listesi, kapsül, koleksiyon
+===================================================================== */
+function svgNode(n, cls){
+  const fill = n.t === 'prime' ? COL.green : n.t === 'gold' ? COL.gold : n.t === 'bh' ? COL.purple : COL.navy;
+  const stroke = n.t === 'rock' ? COL.orange : '#fff';
+  const txt = n.t === 'gold' ? COL.navy : '#fff';
+  const fs = String(n.v).length >= 3 ? 12 : 15;
+  return '<g class="tnode ' + (n.anim || '') + '"><circle cx="' + n.x + '" cy="' + n.y + '" r="19" fill="' + fill + '" stroke="' + stroke + '" stroke-width="3"/>' +
+         '<text x="' + n.x + '" y="' + (n.y + 5) + '" text-anchor="middle" font-size="' + fs + '" font-weight="800" fill="' + txt + '">' + n.v + '</text></g>';
+}
+
+function renderTree(){
+  const svg = $('#tree'), r = G.focus;
+  if (!r){
+    svg.innerHTML = '<text x="170" y="200" text-anchor="middle" font-size="15" fill="#4a5a78">Bir taş seçildiğinde ağaç burada büyür</text>';
+    $('#treeLbl').textContent = ''; return;
+  }
+  $('#treeLbl').textContent = 'Taş: ' + r.orig;
+  let out = '';
+  if (r.pure){
+    if (r.sealed){
+      out += '<g class="tnode pop"><polygon points="170,28 208,72 170,116 132,72" fill="' + COL.gold + '" stroke="#fff" stroke-width="3"/>' +
+             '<text x="170" y="80" text-anchor="middle" font-size="22" font-weight="900" fill="' + COL.navy + '">' + r.orig + '</text></g>' +
+             '<text x="170" y="150" text-anchor="middle" font-size="16" font-weight="800" fill="' + COL.navy + '">Tekil Kök Kristal</text>' +
+             '<text x="170" y="174" text-anchor="middle" font-size="13" fill="#4a5a78">Kendinden başka böleni yok!</text>' +
+             '<text x="170" y="198" text-anchor="middle" font-size="13" fill="#4a5a78">Dallanmaz, ağaç tek köktür.</text>';
+    } else if (r.bh){
+      out += svgNode({ x:170, y:50, v:r.orig, t:'bh', anim:'pop' }) +
+             '<text x="170" y="100" text-anchor="middle" font-size="15" font-weight="800" fill="' + COL.red + '">Karadelik! Dallanamaz.</text>' +
+             '<text x="170" y="122" text-anchor="middle" font-size="13" fill="#4a5a78">Asal sayı parçalanmaz: mühürle.</text>';
+    } else {
+      out += svgNode({ x:170, y:50, v:r.orig, t:'rock' }) +
+             '<text x="170" y="100" text-anchor="middle" font-size="13" fill="#4a5a78">Dallar bekleniyor…</text>';
+    }
+    svg.innerHTML = out; return;
+  }
+  const nodes = [], lines = [];
+  const root = { x:140, y:30, v:r.orig, t:'rock', anim:'' };
+  nodes.push(root);
+  let cur = root;
+  r.steps.forEach((s, i) => {
+    const isNew = i === r.steps.length - 1;
+    if (s.after === 1){
+      cur.t = 'prime'; if (isNew) cur.anim = 'pop';
+    } else {
+      const leaf = { x:cur.x - 42, y:cur.y + 48, v:s.p, t:'prime', anim:isNew ? 'pop' : '' };
+      const rem  = { x:cur.x + 22, y:cur.y + 48, v:s.after, t:'rock', anim:isNew ? 'pop' : '' };
+      lines.push({ x1:cur.x, y1:cur.y, x2:leaf.x, y2:leaf.y, a:isNew });
+      lines.push({ x1:cur.x, y1:cur.y, x2:rem.x, y2:rem.y, a:isNew });
+      nodes.push(leaf, rem); cur = rem;
+    }
+  });
+  lines.forEach(l => { out += '<line class="tline ' + (l.a ? 'draw' : '') + '" x1="' + l.x1 + '" y1="' + l.y1 + '" x2="' + l.x2 + '" y2="' + l.y2 + '"/>'; });
+  nodes.forEach(n => { out += svgNode(n); });
+  if (!r.steps.length){
+    out += '<text x="170" y="75" text-anchor="middle" font-size="13" fill="#4a5a78">İlk asal bölenini lazerle seç</text>';
+  }
+  if (r.val === 1){
+    out += '<text x="170" y="408" text-anchor="middle" font-size="14" font-weight="800" fill="' + COL.green + '">Yapraklar: ' + r.factors.join(' · ') + ' ✓</text>';
+  }
+  svg.innerHTML = out;
+}
+
+function renderList(){
+  const el = $('#divList'), r = G.focus;
+  if (!r){ el.innerHTML = '<p class="muted">Bölen listesi, taşı böldükçe burada adım adım dolacak.</p>'; return; }
+  let h = '<div class="muted" style="margin-bottom:6px">Asal çarpan algoritması: ' + r.orig + '</div><div class="dlist">';
+  if (r.pure){
+    if (r.sealed){
+      h += '<div class="drow"><span class="dn">' + r.orig + '</span><span class="dd">' + r.orig + '</span></div>';
+      h += '<div class="drow"><span class="dn">1</span><span class="dd"></span></div></div>';
+      h += '<p class="muted" style="margin-top:8px">' + r.orig + ' | ' + r.orig + ' → 1 &nbsp;Tek adımda biter.</p>';
+    } else {
+      h += '<div class="drow"><span class="dn">' + r.orig + '</span><span class="dd q">?</span></div></div>';
+    }
+    el.innerHTML = h; return;
+  }
+  r.steps.forEach(s => { h += '<div class="drow"><span class="dn">' + s.before + '</span><span class="dd">' + s.p + '</span></div>'; });
+  if (r.val === 1) h += '<div class="drow"><span class="dn">1</span><span class="dd"></span></div>';
+  else h += '<div class="drow"><span class="dn">' + r.val + '</span><span class="dd q">?</span></div>';
+  h += '</div>';
+  if (r.val === 1) h += '<p class="muted" style="margin-top:8px">Sağ sütundaki asallar çarpılırsa ' + r.orig + ' elde edilir.</p>';
+  el.innerHTML = h;
+}
+
+function renderCapsule(){
+  const el = $('#capsule'), r = G.focus;
+  if (r && ((!r.pure && r.val === 1) || (r.pure && r.sealed))){
+    el.className = 'capsule' + (r.pure ? ' gold' : '');
+    el.innerHTML = r.pure ? (r.orig + ' = ' + r.orig + ' (asal)') : (r.orig + ' = ' + expForm(r.factors));
+  } else {
+    el.className = 'capsule idle';
+    el.textContent = 'Bir taşı 1\'e ulaştır';
+  }
+}
+
+function renderCollection(){
+  $('#colLbl').textContent = 'Saf Asallar Koleksiyonu (' + G.collection.length + ')';
+  $('#collection').innerHTML = G.collection.length
+    ? G.collection.map(n => '<span class="gchip">' + n + '</span>').join('')
+    : '<span class="muted">Henüz mühürlenmiş asal yok.</span>';
+}
+
+function renderAll(){ renderTree(); renderList(); renderCapsule(); renderCollection(); }
+
+/* =====================================================================
+   Konsol ve girişler
+===================================================================== */
+(function buildConsole(){
+  const box = $('#lasers');
+  LASERS.forEach(p => {
+    const b = document.createElement('button');
+    b.className = 'laser'; b.dataset.p = p;
+    b.innerHTML = '÷' + p + '<span class="k">' + LKEY[p] + '</span><span class="bar" style="background:' + LCOL[p] + '"></span>';
+    b.addEventListener('click', () => fireLaser(p));
+    box.appendChild(b);
+  });
+  $('#btnSeal').addEventListener('click', sealRock);
+})();
+
+$('#overlay').addEventListener('click', function(e){
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  SFX.init();
+  const act = a.dataset.act;
+  if (act === 'start') startGame();
+  else if (act === 'resume') pauseGame(false);
+});
+$('#btnPause').addEventListener('click', () => { if (G.running && !G.over) pauseGame(!G.paused); });
+$('#btnSound').addEventListener('click', function(){
+  SFX.init(); SFX.muted = !SFX.muted; this.textContent = SFX.muted ? '🔇' : '🔊';
+});
+
+document.addEventListener('keydown', function(e){
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+  if (activeTab !== 'reactor') return;
+  const k = e.key.toLowerCase();
+  if (k === 'p'){ if (G.running && !G.over) pauseGame(!G.paused); return; }
+  if (!G.running || G.paused || G.over) return;
+  if (k === '2' || k === '3' || k === '5' || k === '7'){ fireLaser(Number(k)); }
+  else if (k === 'q'){ fireLaser(11); }
+  else if (k === 'w'){ fireLaser(13); }
+  else if (k === 'm' || k === ' '){ e.preventDefault(); sealRock(); }
+  else if (k === 'tab'){
+    e.preventDefault();
+    const a = activeRocks().sort((x, y) => x.xf - y.xf);
+    if (a.length){
+      const cur = getTarget(); const i = a.indexOf(cur);
+      selectRock(a[(i + 1) % a.length].id);
+    }
+  }
+});
+
+document.addEventListener('visibilitychange', () => { if (document.hidden && G.running && !G.over && !G.paused) pauseGame(true); });
+window.addEventListener('resize', resizeField);
+
+/* =====================================================================
+   Sekmeler
+===================================================================== */
+function showTab(name){
+  if (activeTab === 'reactor' && name !== 'reactor' && G.running && !G.over && !G.paused) pauseGame(true);
+  activeTab = name;
+  $$('.tab').forEach(s => s.classList.toggle('active', s.id === 'tab-' + name));
+  $$('.tbtn').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  if (name === 'reactor') setTimeout(resizeField, 30);
+}
+$('#tabs').addEventListener('click', function(e){
+  const b = e.target.closest('.tbtn'); if (!b) return;
+  SFX.init(); SFX.ui(); showTab(b.dataset.tab);
+});
+
+/* =====================================================================
+   ERATOSTHENES KALBURU
+===================================================================== */
+const SV = { applied:[], oneOut:false, log:[], sel:0 };
+const SCOL = { 2:'#FB8C00', 3:'#D64545', 5:'#6A4C93', 7:'#5C7FA8' };
+
+function crossedBy(n){
+  for (let i = 0; i < SV.applied.length; i++){ const p = SV.applied[i]; if (n !== p && n % p === 0) return p; }
+  return 0;
+}
+function numInfo(n){
+  if (n === 1) return '<b>1 asal değildir.</b> Asal bir sayının tam iki böleni olmalıdır: 1 ve kendisi. 1\'in yalnızca bir böleni vardır.';
+  const f = factorize(n);
+  if (f.length === 1) return '<b>' + n + ' asaldır.</b> Yalnızca 1 ve ' + n + ' ile bölünür.' + (n === 2 ? ' 2, tek çift asal sayıdır!' : '');
+  return '<b>' + n + ' asal değildir:</b> ' + n + ' = ' + expForm(f) + ' (en küçük asal böleni ' + f[0] + ').';
+}
+function sieveRender(){
+  const all = SV.oneOut && SV.applied.length === 4;
+  let h = '', remain = 0;
+  for (let n = 1; n <= 100; n++){
+    let cls = 'scell', style = '';
+    if (n === 1){ if (SV.oneOut) cls += ' out'; else remain++; }
+    else {
+      const c = crossedBy(n);
+      if (c){ cls += ' x'; style = 'background:' + SCOL[c] + '33;'; }
+      else {
+        remain++;
+        if (all) cls += ' prime';
+        else if (SV.applied.indexOf(n) >= 0) cls += ' keep';
+      }
+    }
+    if (SV.sel === n) cls += ' sel';
+    h += '<div class="' + cls + '" style="' + style + '" data-n="' + n + '">' + n + '</div>';
+  }
+  $('#sgrid').innerHTML = h;
+  $('#svCount').textContent = all ? '25 asal sayı bulundu!' : 'Elenmeyen: ' + remain;
+  let b = '';
+  b += '<button class="btn ghost" data-sv="one"' + (SV.oneOut ? ' disabled' : '') + '>1\'i ele (asal değil)</button>';
+  [2,3,5,7].forEach(p => {
+    const done = SV.applied.indexOf(p) >= 0;
+    b += '<button class="btn teal" data-sv="' + p + '"' + (done ? ' disabled' : '') + ' style="background:' + SCOL[p] + '">' + p + '\'nin katlarını ele</button>';
+  });
+  b += '<button class="btn ghost" data-sv="reset">Sıfırla</button>';
+  $('#svBtns').innerHTML = b;
+  $('#svLog').innerHTML = SV.log.length ? SV.log.map(x => '• ' + x).join('<br>') : 'Henüz eleme yapılmadı.';
+  if (all){
+    const primes = []; for (let n = 2; n <= 100; n++) if (isPrime(n)) primes.push(n);
+    $('#svMsg').className = 'info-box g';
+    $('#svMsg').innerHTML = '<b>Kalbur tamamlandı!</b> 100\'e kadar tam <b>25</b> asal sayı var: ' + primes.join(', ') + '.';
+  }
+}
+$('#sgrid').addEventListener('click', function(e){
+  const c = e.target.closest('.scell'); if (!c) return;
+  const n = Number(c.dataset.n); SV.sel = n; SFX.init(); SFX.ui();
+  const was = $('#svMsg').innerHTML;
+  sieveRender();
+  const all = SV.oneOut && SV.applied.length === 4;
+  if (!all){ $('#svMsg').className = 'info-box t'; $('#svMsg').innerHTML = numInfo(n); }
+  else { $('#svMsg').innerHTML = was + '<br>' + numInfo(n); }
+});
+$('#svBtns').addEventListener('click', function(e){
+  const b = e.target.closest('[data-sv]'); if (!b || b.disabled) return;
+  SFX.init();
+  const v = b.dataset.sv;
+  if (v === 'reset'){ SV.applied = []; SV.oneOut = false; SV.log = []; SV.sel = 0; sieveRender(); $('#svMsg').className = 'info-box t'; $('#svMsg').innerHTML = 'Kalbur sıfırlandı. 1\'i ele, sonra 2, 3, 5 ve 7\'nin katlarını ele.'; return; }
+  if (v === 'one'){
+    SV.oneOut = true; SV.log.push('1 elendi: asal değil (tek böleni var).');
+    sieveRender(); $('#svMsg').className = 'info-box g'; $('#svMsg').innerHTML = numInfo(1); SFX.tone(500, .15, 'triangle', .08, 0); return;
+  }
+  const p = Number(v);
+  const before = []; for (let n = 2; n <= 100; n++) if (!crossedBy(n) && n !== p && n % p === 0) before.push(n);
+  SV.applied.push(p);
+  SV.log.push(p + '\'nin katları elendi: ' + before.length + ' yeni sayı (' + (before.length ? before.slice(0, 6).join(', ') + (before.length > 6 ? ' …' : '') : 'yeni sayı yok') + ').');
+  SFX.tone(SFX.freq(p) * 2, .3, 'triangle', .1, 0);
+  sieveRender();
+  const all = SV.oneOut && SV.applied.length === 4;
+  if (all){ SFX.win(); }
+  else { $('#svMsg').className = 'info-box t'; $('#svMsg').innerHTML = '<b>' + p + '\'nin katları</b> elendi, ' + p + ' ise asal olarak kaldı (turkuaz çerçeve).' + (SV.oneOut ? '' : ' Unutma: 1\'i de elemelisin.'); }
+});
+
+/* =====================================================================
+   ASAL FÜZYON REAKTÖRÜ
+===================================================================== */
+function fInfo(f){
+  const m = expMap(f); let n = 1; f.forEach(p => { n *= p; });
+  return { n:n, distinct:m.size, total:f.length, m:m, maxExp:Math.max.apply(null, [0].concat(Array.from(m.values()))) };
+}
+const FCH = [
+  { text:'2 farklı asal çarpanı olan ve 80 ile 90 arasında yer alan bir bileşik çekirdek oluştur.',
+    hint:'Önce 80 ile 90 arasındaki sayılara bak: hangisi yalnızca iki farklı asalın çarpımı (üslü olabilir)? Elindeki parçacıklar 2, 3, 5, 7, 11 ve 13.',
+    test:function(i){ if (i.n <= 80 || i.n >= 90) return { ok:false, msg:'Çekirdek ' + i.n + ': 80 ile 90 arasında olmalı.' };
+      if (i.distinct !== 2) return { ok:false, msg:'Çekirdek ' + i.n + ' arada ama ' + i.distinct + ' farklı asal çarpanı var; 2 olmalı.' };
+      return { ok:true, msg:'Harika! ' + i.n + ' = ' + expForm(Array.from(i.m).flatMap(([p,e]) => Array(e).fill(p))) + '. Yalnızca 2 farklı asal çarpan var.' }; } },
+  { text:'Toplam 3 asal çarpanı olan (tekrarlar dahil) ve 30\'dan küçük bir çekirdek oluştur.',
+    hint:'Aynı asalı tekrar kullanabilirsin. Üç parçacığı çarp ve 30\'un altında kal.',
+    test:function(i){ if (i.total !== 3) return { ok:false, msg:'Toplam ' + i.total + ' asal çarpan kullandın; tam 3 olmalı.' };
+      if (i.n >= 30) return { ok:false, msg:'Çekirdek ' + i.n + ', 30\'dan küçük olmalı.' };
+      return { ok:true, msg:'Doğru! ' + i.n + ' sayısında asal çarpanların sayısı üslerin toplamıdır, farklı asalların sayısı değil.' }; } },
+  { text:'Üslü gösterimi 2³ · 5 olan çekirdeği üret.',
+    hint:'2³ demek 2 · 2 · 2 demektir. Ona bir de 5 ekle.',
+    test:function(i){ if (i.distinct === 2 && i.m.get(2) === 3 && i.m.get(5) === 1) return { ok:true, msg:'Doğru! 2³ · 5 = 8 · 5 = 40.' };
+      return { ok:false, msg:'Çekirdek ' + i.n + ' = ' + expForm(Array.from(i.m).flatMap(([p,e]) => Array(e).fill(p))) + '. Hedef üslü gösterim 2³ · 5.' }; } },
+  { text:'3 farklı asal çarpanı olan en küçük bileşik çekirdeği oluştur.',
+    hint:'Küçük asallar küçük çarpım verir. En küçük üç asal hangileri?',
+    test:function(i){ if (i.distinct !== 3) return { ok:false, msg:'Çekirdek ' + i.n + ' için farklı asal sayısı ' + i.distinct + '; 3 olmalı.' };
+      if (i.n !== 30) return { ok:false, msg:'Koşul sağlandı ama ' + i.n + ' en küçük değil. Daha küçük asallar dene.' };
+      return { ok:true, msg:'Mükemmel! En küçük üç asal 2, 3, 5 ve 2 · 3 · 5 = 30.' }; } },
+  { text:'Bir asal çarpanının karesini (ya da daha yüksek üssünü) içeren ve 50 ile 60 arasında bir çekirdek oluştur.',
+    hint:'Üssü 2 ya da daha büyük olan en az bir asal çarpan olmalı. 52, 54, 56 sayılarına bak.',
+    test:function(i){ if (i.n <= 50 || i.n >= 60) return { ok:false, msg:'Çekirdek ' + i.n + ': 50 ile 60 arasında olmalı.' };
+      if (i.maxExp < 2) return { ok:false, msg:'Çekirdek ' + i.n + ' arada ama hiçbir asalın üssü 2 ya da daha büyük değil.' };
+      return { ok:true, msg:'Süper! ' + i.n + ' = ' + expForm(Array.from(i.m).flatMap(([p,e]) => Array(e).fill(p))) + ' ve en az bir üs 2\'den büyük ya da eşit.' }; } },
+  { text:'Tek sayı olan, 100\'den büyük ve tam 3 farklı asal çarpanı olan bir çekirdek oluştur.',
+    hint:'Tek sayıların asal çarpanları arasında 2 yoktur. 3, 5, 7, 11, 13 ile dene.',
+    test:function(i){ if (i.n % 2 === 0) return { ok:false, msg:'Çekirdek ' + i.n + ' çift. 2 asalını kullanma.' };
+      if (i.n <= 100) return { ok:false, msg:'Çekirdek ' + i.n + ', 100\'den büyük olmalı.' };
+      if (i.distinct !== 3) return { ok:false, msg:'Çekirdek ' + i.n + ' için farklı asal sayısı ' + i.distinct + '; 3 olmalı.' };
+      return { ok:true, msg:'Çok iyi! ' + i.n + ' = ' + expForm(Array.from(i.m).flatMap(([p,e]) => Array(e).fill(p))) + '. Tek sayının çarpanları arasında 2 yoktur.' }; } }
+];
+const F = { idx:0, slots:[], solved:[], done:false };
+
+function fusionRender(){
+  const ch = FCH[F.idx];
+  $('#fuDots').innerHTML = FCH.map((c, i) => '<span class="dot ' + (F.solved.indexOf(i) >= 0 ? 'on' : (i === F.idx ? 'cur' : '')) + '"></span>').join('');
+  $('#fuScore').textContent = 'Çözülen: ' + F.solved.length + '/' + FCH.length;
+  $('#fuTarget').innerHTML = '<b>Hedef ' + (F.idx + 1) + ':</b> ' + ch.text;
+  $('#fuParts').innerHTML = LASERS.map(p => '<button class="part" data-p="' + p + '" style="background:' + LCOL[p] + '">' + p + '</button>').join('');
+  $('#fuSlots').innerHTML = F.slots.length
+    ? F.slots.map((p, i) => '<button class="slot-chip" data-i="' + i + '" style="background:' + LCOL[p] + '">' + p + '</button>').join('')
+    : '<span class="muted">Yuva boş: parçacık ekle (en fazla 8).</span>';
+  if (F.slots.length){
+    const i = fInfo(F.slots);
+    $('#fuProduct').innerHTML = F.slots.join(' × ') + ' = <span style="color:var(--teal)">' + i.n + '</span> &nbsp;<span style="font-size:18px">(' + expForm(F.slots) + ')</span>';
+  } else $('#fuProduct').innerHTML = '';
+}
+$('#fuParts').addEventListener('click', function(e){
+  const b = e.target.closest('.part'); if (!b) return;
+  SFX.init();
+  if (F.slots.length >= 8){ SFX.wrong(); return; }
+  F.slots.push(Number(b.dataset.p)); SFX.tone(SFX.freq(Number(b.dataset.p)) * 2, .2, 'triangle', .1, 0);
+  $('#fuMsg').style.display = 'none'; fusionRender();
+});
+$('#fuSlots').addEventListener('click', function(e){
+  const b = e.target.closest('.slot-chip'); if (!b) return;
+  F.slots.splice(Number(b.dataset.i), 1); SFX.init(); SFX.ui(); fusionRender();
+});
+$('#fuClear').addEventListener('click', () => { F.slots = []; $('#fuMsg').style.display = 'none'; fusionRender(); });
+$('#fuHint').addEventListener('click', () => { const m = $('#fuMsg'); m.style.display = 'block'; m.className = 'info-box o'; m.innerHTML = '💡 ' + FCH[F.idx].hint; });
+$('#fuGo').addEventListener('click', function(){
+  SFX.init();
+  const m = $('#fuMsg'); m.style.display = 'block';
+  if (F.slots.length < 2){ m.className = 'info-box r'; m.innerHTML = 'Bileşik çekirdek için en az 2 asal parçacık gerekir.'; SFX.wrong(); return; }
+  const info = fInfo(F.slots);
+  const res = FCH[F.idx].test(info);
+  if (res.ok){
+    m.className = 'info-box g'; m.innerHTML = '✅ ' + res.msg;
+    SFX.chord(F.slots);
+    if (F.solved.indexOf(F.idx) < 0) F.solved.push(F.idx);
+    $('#fuNext').style.display = 'inline-block';
+    $('#fuNext').textContent = F.solved.length === FCH.length ? '🏁 Baştan Oyna' : 'Sonraki Hedef ▶';
+  } else {
+    m.className = 'info-box r'; m.innerHTML = '❌ ' + res.msg; SFX.wrong();
+  }
+  fusionRender();
+});
+$('#fuNext').addEventListener('click', function(){
+  SFX.init();
+  if (F.solved.length === FCH.length){ F.solved = []; F.idx = 0; }
+  else { let n = (F.idx + 1) % FCH.length; let g = 0; while (F.solved.indexOf(n) >= 0 && g++ < FCH.length) n = (n + 1) % FCH.length; F.idx = n; }
+  F.slots = []; $('#fuMsg').style.display = 'none'; this.style.display = 'none'; fusionRender();
+});
+
+/* =====================================================================
+   İŞANGO KEMİĞİ
+===================================================================== */
+const ISG = [11, 13, 17, 19];
+let isSel = 0;
+function boneRender(){
+  let s = '<defs><linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2E8CF"/><stop offset="1" stop-color="#D9C79C"/></linearGradient></defs>';
+  s += '<path d="M20 55 Q4 95 20 135 L40 150 L690 150 L710 135 Q726 95 710 55 L690 40 L40 40 Z" fill="url(#bg1)" stroke="#B49B6B" stroke-width="3"/>';
+  const starts = { 11:60, 13:160, 17:285, 19:440 };
+  const groups = ISG.concat([12]);
+  groups.forEach((n, gi) => {
+    const x0 = n === 12 ? 585 : starts[n];
+    const comp = !isPrime(n);
+    s += '<g class="bone-grp ' + (isSel === n ? 'sel ' : '') + (comp ? 'comp' : '') + '" data-n="' + n + '">';
+    s += '<rect x="' + (x0 - 8) + '" y="48" width="' + (n * 7 + 12) + '" height="86" fill="transparent"/>';
+    for (let i = 0; i < n; i++){
+      const x = x0 + i * 7, h = 52 + ((i * 5 + n) % 3) * 6;
+      s += '<line x1="' + x + '" y1="' + (70 - 4 + (i % 2) * 2) + '" x2="' + x + '" y2="' + (70 + h - 20) + '"/>';
+    }
+    s += '<text x="' + (x0 + n * 3.5) + '" y="172" text-anchor="middle" font-size="15" font-weight="800" fill="' + (comp ? COL.red : COL.navy) + '">' + n + (comp ? ' (karşılaştır)' : '') + '</text></g>';
+  });
+  $('#boneSvg').innerHTML = s;
+}
+function boneInfo(n){
+  isSel = n; boneRender();
+  const prime = isPrime(n);
+  let rem = '';
+  for (let k = 2; k < n; k++){
+    rem += '<span class="rem-chip ' + (n % k === 0 ? 'z' : '') + '">' + n + ' ÷ ' + k + (n % k === 0 ? ' = ' + (n / k) + ' ✓ böler' : ' → kalan ' + (n % k)) + '</span>';
+  }
+  $('#isInfo').className = 'info-box ' + (prime ? 'g' : 'r');
+  $('#isInfo').innerHTML = prime
+    ? '<b>' + n + ' çentik: asal!</b> 2\'den ' + (n - 1) + '\'e kadar hiçbir sayıya tam bölünmez. Çentikleri eşit gruplara ayıramazsın; yalnızca 1 sıra ya da ' + n + ' tek çentik olur.'
+    : '<b>' + n + ' çentik: asal değil.</b> ' + n + ' = ' + expForm(factorize(n)) + '; çentikleri eşit gruplara ayırabilirsin.';
+  $('#isTable').innerHTML = '<div class="muted" style="margin-bottom:4px">Eşit gruplara ayırma denemeleri:</div>' + rem;
+}
+$('#boneSvg').addEventListener('click', function(e){ const g = e.target.closest('.bone-grp'); if (!g) return; SFX.init(); SFX.ui(); boneInfo(Number(g.dataset.n)); });
+
+/* ---------- Şifre odası ---------- */
+const KEYP = [ { n:143 }, { n:221 }, { n:323 }, { n:391 }, { n:667 } ];
+let keyIdx = 0;
+function keyRender(){
+  const k = KEYP[keyIdx];
+  $('#keyPuz').innerHTML =
+    '<div class="info-box o">Açık anahtar <b class="mono" style="font-size:20px">n = ' + k.n + '</b>. Gizli anahtar, çarpımı ' + k.n + ' olan <b>iki asal sayıdır</b>. Bul!</div>' +
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px"><input id="kp" class="fld" type="number" min="2" placeholder="p"> × <input id="kq" class="fld" type="number" min="2" placeholder="q">' +
+    '<button id="kGo" class="btn teal">Kır</button><button id="kNext" class="btn ghost">Başka anahtar</button></div><div id="kMsg" class="info-box" style="display:none"></div>';
+  $('#kGo').addEventListener('click', function(){
+    SFX.init();
+    const p = Number($('#kp').value), q = Number($('#kq').value), m = $('#kMsg'), n = KEYP[keyIdx].n;
+    m.style.display = 'block';
+    if (!p || !q || p < 2 || q < 2){ m.className = 'info-box r'; m.textContent = 'İki sayı gir.'; SFX.wrong(); return; }
+    if (p * q !== n){ m.className = 'info-box r'; m.innerHTML = p + ' × ' + q + ' = ' + (p * q) + ', ' + n + ' değil. İpucu: küçük asallardan başlayarak ' + n + '\'i böl.'; SFX.wrong(); return; }
+    if (!isPrime(p) || !isPrime(q)){ m.className = 'info-box r'; m.innerHTML = 'Çarpım doğru ama çarpanlar asal olmalı. ' + (!isPrime(p) ? p + ' asal değil. ' : '') + (!isPrime(q) ? q + ' asal değil.' : ''); SFX.wrong(); return; }
+    m.className = 'info-box g'; m.innerHTML = '🔓 <b>Anahtar kırıldı!</b> ' + n + ' = ' + Math.min(p, q) + ' × ' + Math.max(p, q) + '. Küçük sayılarda kolay; gerçek şifrelerde p ve q yüzlerce basamaklı olduğu için bu işlem pratikte imkânsızdır.'; SFX.win();
+  });
+  $('#kNext').addEventListener('click', function(){ keyIdx = (keyIdx + 1) % KEYP.length; SFX.init(); SFX.ui(); keyRender(); });
+}
+const RSAP = [11, 101, 1009, 10007, 100003, 1000003];
+(function(){
+  const opts = RSAP.map(p => '<option value="' + p + '">' + p + '</option>').join('');
+  $('#rsaP').innerHTML = opts; $('#rsaQ').innerHTML = opts; $('#rsaQ').selectedIndex = 1;
+})();
+$('#rsaGo').addEventListener('click', function(){
+  SFX.init();
+  const p = Number($('#rsaP').value), q = Number($('#rsaQ').value), n = p * q;
+  const t0 = performance.now();
+  let steps = 0, found = 0;
+  if (n % 2 === 0){ found = 2; steps = 1; }
+  else { for (let d = 3; d * d <= n; d += 2){ steps++; if (n % d === 0){ found = d; break; } } }
+  const ms = Math.max(0.01, performance.now() - t0);
+  const out = $('#rsaOut'); out.style.display = 'block'; out.className = 'info-box t';
+  const lg = Math.log10(steps + 1) / 6;
+  out.innerHTML = '<b>n = ' + p + ' × ' + q + ' = ' + n + '</b><br>Kaba kuvvet: ' + (found ? found + ' ile bölündü, ' : '') + '<b>' + steps.toLocaleString('tr-TR') + '</b> deneme, ' + ms.toFixed(1) + ' ms.<br>' +
+    (found ? n + ' = ' + found + ' × ' + (n / found) + '<br>' : '') +
+    '<div class="bar-row"><span class="bar-lbl">Deneme sayısı (log ölçek)</span><div class="bar-track"><div class="bar-fill" style="width:' + Math.min(100, Math.max(4, lg * 100)).toFixed(0) + '%;background:' + (steps > 50000 ? COL.red : COL.teal) + '"></div></div></div>' +
+    '<span class="muted">Asal çarpan büyüdükçe deneme sayısı hızla artar. Çarpmak tek adım, ayırmak binlerce adım.</span>';
+  SFX.tone(440, .2, 'triangle', .08, 0);
+});
+
+/* =====================================================================
+   ÖĞRETMEN PANELİ
+===================================================================== */
+function randTree(n){
+  if (isPrime(n)) return { n:n, kids:[] };
+  const d = []; for (let k = 2; k < n; k++) if (n % k === 0) d.push(k);
+  const a = pick(d);
+  return { n:n, kids:[randTree(a), randTree(n / a)] };
+}
+function leaves(t){ return t.kids.length ? t.kids.flatMap(leaves) : [t.n]; }
+function treeHTML(t){
+  return '<div class="tn-wrap"><div class="tn ' + (t.kids.length ? '' : 'leaf') + '">' + t.n + '</div>' +
+         (t.kids.length ? '<div class="tn-kids">' + t.kids.map(treeHTML).join('') + '</div>' : '') + '</div>';
+}
+function ordRun(n){
+  const seen = new Set(), trees = [];
+  for (let i = 0; i < 40 && trees.length < 3; i++){
+    const t = randTree(n), sig = JSON.stringify(t);
+    if (!seen.has(sig)){ seen.add(sig); trees.push(t); }
+  }
+  $('#ordOut').innerHTML = trees.map((t, i) => {
+    const lv = leaves(t).sort((a, b) => a - b);
+    return '<div class="tn-card"><b>Ağaç ' + (i + 1) + '</b>' + treeHTML(t) + '<div style="margin-top:8px;font-weight:800;color:var(--navy)">' + n + ' = ' + expForm(lv) + '</div></div>';
+  }).join('');
+  const m = $('#ordMsg'); m.style.display = 'block';
+  m.innerHTML = '<b>Sonuç:</b> ' + (trees.length > 1 ? 'Ağaçların dalları farklı, ' : 'Bu sayının ağaç biçimi sınırlı, ') + 'ama yapraklar (asal çarpanlar) hep aynı: <b>' + n + ' = ' + expForm(factorize(n)) + '</b>. Çarpanların sırası değişebilir, çarpanlar değişmez.';
+  SFX.tone(660, .2, 'triangle', .08, 0);
+}
+(function(){
+  const box = $('#ordBtns');
+  [60, 72, 84, 90, 120, 180].forEach(n => {
+    const b = document.createElement('button'); b.className = 'btn ghost'; b.textContent = n + ' için ağaç çiz';
+    b.addEventListener('click', () => { SFX.init(); ordRun(n); });
+    box.appendChild(b);
+  });
+})();
+
+const MISC = [
+  { t:'«1 bir asal sayıdır.»', why:'Asal sayının tam iki böleni olmalıdır; 1\'in yalnızca bir böleni vardır. Ayrıca 1 asal sayılsaydı çarpanlara ayırma tek olmazdı (6 = 2·3 = 1·2·3).', q:'Kalburda 1\'i neden ilk eledik? 1 asal olsaydı 6\'nın asal çarpanları ne olurdu?' },
+  { t:'«Tek sayılar asaldır» / «Asal sayılar tektir.»', why:'9, 15, 21, 91 tek ama asal değildir. 2 ise çift olduğu hâlde asaldır ve tek çift asal sayıdır.', q:'91 asal mı? (7 · 13). 2 neden özeldir?' },
+  { t:'«Ağacı farklı çizersem asal çarpanlar değişir.»', why:'Aritmetiğin temel teoremi: asal çarpanlara ayırma, sıra dışında tektir. Ağaç farklı görünse de yapraklar aynıdır.', q:'60\'ı 6·10 ve 4·15 diye ayıran iki arkadaşın sonucu aynı mı çıkar? Laboratuvarda dene.' },
+  { t:'«12\'nin çarpanları ile asal çarpanları aynıdır.»', why:'12\'nin çarpanları 1, 2, 3, 4, 6, 12; asal çarpanları ise yalnızca 2 ve 3\'tür. Her asal çarpan bir çarpandır ama her çarpan asal değildir.', q:'Hangi çarpanlar asal? Bölen listesindeki sağ sütun neden hep asal?' },
+  { t:'«Ağacın dalında 6 ya da 10 kalınca iş biter.»', why:'Ağaç, bütün yapraklar asal olunca biter. Bileşik bir sayıyı yaprakta bırakmak çözümlemeyi eksik bırakır.', q:'Ağaçta hangi yapraklar hâlâ bölünebilir? Nerede durmalıyız?' },
+  { t:'«2·2·2 = 2·3 ya da 2³ = 6.»', why:'Üs, tekrarlı çarpmayı gösterir: 2³ = 2·2·2 = 8. Üssü çarpan gibi çarpmak sık yapılan bir hatadır.', q:'72 = 2³ · 3² ifadesini açıp çarparak doğrula.' },
+  { t:'«İki asalın çarpımı da asaldır.»', why:'Çarpım, iki asalı (ve 1\'i) bölen olarak kazanır: 3·5 = 15 → bölenleri 1, 3, 5, 15. Asal çarpımı bileşiktir.', q:'Füzyon reaktöründe iki asalı çarp ve sonucu sına.' },
+  { t:'«Son basamağı 3 olan sayılar asaldır.»', why:'13, 23, 43 asal; 33 = 3·11, 63 = 7·9 değil. Asal olmak, son basamakla değil bölenlerle ilgilidir.', q:'Son basamağı 3 olan bileşik üç sayı bul.' },
+  { t:'«Asal sayılar bir yerde biter.»', why:'Asal sayılar sonsuzdur (Öklid). Bilinen en büyük asalı bulmak ayrı bir iştir, ama en büyük asal yoktur.', q:'Kalburda asallar nasıl seyrekleşiyor? Sonsuz olduklarını nasıl savunursun?' }
+];
+$('#miscCards').innerHTML = MISC.map(m =>
+  '<details class="dcard"><summary>' + m.t + '</summary><p><b>Neden yanılgı?</b> ' + m.why + '</p><div class="tq"><b>Sınıfa sor:</b> ' + m.q + '</div></details>').join('');
+
+/* =====================================================================
+   Başlangıç
+===================================================================== */
+function init(){
+  resizeField();
+  updateHUD();
+  renderAll();
+  sieveRender();
+  fusionRender();
+  boneRender();
+  keyRender();
+  showOverlay('start');
+  requestAnimationFrame(loop);
+}
+init();
+
+})();
+</script>
+</body>
+</html>
